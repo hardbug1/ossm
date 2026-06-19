@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; height: 100%; background: var(--md-sys-color-surface); }
+  *, *::before, *::after { box-sizing: border-box; }
+  @keyframes ossm-spin { to { transform: rotate(360deg); } }
+  @media print {
+    [data-chrome] { display: none !important; }
+    [data-scroll] { overflow: visible !important; height: auto !important; }
+    html, body { background: #ffffff !important; }
+    [data-report] { box-shadow: none !important; margin: 0 !important; max-width: none !important; padding: 0 !important; }
+    [data-reportbg] { background: #ffffff !important; padding: 0 !important; }
+  }
+  @page { size: A4; margin: 16mm; }
+</style>
+</helmet>
+
+<div data-theme="{{ themeAttr }}" style="height:100vh; display:flex; overflow:hidden; font-family:var(--md-sys-typescale-plain-font); background:var(--md-sys-color-surface); color:var(--md-sys-color-on-surface);">
+
+  <!-- Navigation rail -->
+  <div data-chrome style="width:88px; flex-shrink:0; background:var(--md-sys-color-surface); border-right:1px solid var(--md-sys-color-outline-variant); display:flex; flex-direction:column; align-items:center; padding:18px 0;">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;" onClick="{{ goHome }}">
+      <div style="width:44px; height:44px; border-radius:14px; background:var(--md-sys-color-primary-container); color:var(--md-sys-color-on-primary-container); display:flex; align-items:center; justify-content:center;">
+        <span class="md-icon is-filled" style="font-size:26px;">shield</span>
+      </div>
+      <span style="font-size:11px; font-weight:700; letter-spacing:0.4px; color:var(--md-sys-color-on-surface);">OSSM</span>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:6px; align-items:center; margin-top:28px;">
+      <button onClick="{{ goHome }}" style="display:flex; flex-direction:column; align-items:center; gap:4px; background:transparent; border:none; cursor:pointer; width:68px; padding:6px 0;">
+        <span style="display:flex; align-items:center; justify-content:center; width:56px; height:32px; border-radius:9999px; background:var(--md-sys-color-secondary-container); color:var(--md-sys-color-on-secondary-container);">
+          <span class="md-icon is-filled" style="font-size:24px;">folder</span>
+        </span>
+        <span style="font-size:12px; font-weight:600; color:var(--md-sys-color-on-surface);">프로젝트</span>
+      </button>
+      <button onClick="{{ onNavSettings }}" style="display:flex; flex-direction:column; align-items:center; gap:4px; background:transparent; border:none; cursor:pointer; width:68px; padding:6px 0;">
+        <span style="display:flex; align-items:center; justify-content:center; width:56px; height:32px; border-radius:9999px; color:var(--md-sys-color-on-surface-variant);">
+          <span class="md-icon" style="font-size:24px;">settings</span>
+        </span>
+        <span style="font-size:12px; font-weight:500; color:var(--md-sys-color-on-surface-variant);">설정</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main column -->
+  <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+
+    <!-- ============ HOME ============ -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div data-chrome style="height:72px; flex-shrink:0; display:flex; align-items:center; padding:0 28px; gap:16px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+        <span style="font-family:var(--md-sys-typescale-brand-font); font-size:22px; font-weight:600; color:var(--md-sys-color-on-surface); flex:1;">프로젝트</span>
+        <div style="display:inline-flex; align-items:center; gap:8px; height:34px; padding:0 14px; border-radius:9999px; background:var(--md-sys-color-surface-container-high); font-size:13px; color:var(--md-sys-color-on-surface-variant);">
+          <span style="width:8px; height:8px; border-radius:9999px; background:var(--md-sys-color-primary);"></span>
+          <span style="font-family:var(--md-sys-typescale-mono-font);">Trivy 0.50.1</span>
+          <span>· 연결됨</span>
+        </div>
+      </div>
+      <div data-scroll style="flex:1; overflow-y:auto; padding:28px;">
+        <div style="max-width:1080px; margin:0 auto;">
+          <div style="display:flex; align-items:center; margin-bottom:18px;">
+            <div style="flex:1;">
+              <div style="font-size:14px; color:var(--md-sys-color-on-surface-variant);">스캔할 오픈소스 프로젝트를 관리합니다</div>
+            </div>
+            <button onClick="{{ openDialog }}" style="display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 22px; border-radius:9999px; border:none; cursor:pointer; background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:600;">
+              <span class="md-icon" style="font-size:18px;">add</span>프로젝트 추가
+            </button>
+          </div>
+
+          <div style="background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); overflow:hidden;">
+            <sc-for list="{{ homeProjects }}" as="p" hint-placeholder-count="3">
+              <div onClick="{{ p.onOpen }}" style="display:flex; align-items:center; gap:18px; padding:18px 22px; border-bottom:1px solid var(--md-sys-color-outline-variant); cursor:pointer;">
+                <div style="width:44px; height:44px; border-radius:9999px; flex-shrink:0; background:var(--md-sys-color-surface-container-highest); color:var(--md-sys-color-on-surface-variant); display:flex; align-items:center; justify-content:center;">
+                  <span class="md-icon" style="font-size:22px;">{{ p.typeIcon }}</span>
+                </div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                    <span style="font-size:16px; font-weight:600; color:var(--md-sys-color-on-surface); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;">{{ p.name }}</span>
+                    <span style="font-size:11px; font-weight:600; padding:1px 8px; border-radius:9999px; background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-on-surface-variant); flex-shrink:0;">{{ p.typeKr }}</span>
+                  </div>
+                  <div style="font-size:12.5px; color:var(--md-sys-color-on-surface-variant); margin-top:3px; font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ p.value }}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:14px; flex-shrink:0;">
+                  <sc-if value="{{ p.done }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex; gap:6px;">
+                      <sc-for list="{{ p.sevChips }}" as="c" hint-placeholder-count="3">
+                        <span style="display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:9999px; font-size:12px; font-weight:600; background:{{ c.bg }}; color:{{ c.fg }};">{{ c.kr }} {{ c.count }}</span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ p.failed }}" hint-placeholder-val="{{ false }}">
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:9999px; font-size:12.5px; font-weight:600; background:var(--md-sys-color-error-container); color:var(--md-sys-color-on-error-container);"><span class="md-icon" style="font-size:16px;">error</span>실패</span>
+                  </sc-if>
+                  <sc-if value="{{ p.none }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:12.5px; color:var(--md-sys-color-on-surface-variant);">스캔 없음</span>
+                  </sc-if>
+                  <span style="font-size:12px; color:var(--md-sys-color-on-surface-variant); width:150px; text-align:right;">{{ p.metaLabel }}</span>
+                  <span class="md-icon" style="font-size:22px; color:var(--md-sys-color-on-surface-variant);">chevron_right</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ PROJECT DETAIL ============ -->
+    <sc-if value="{{ isProject }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div data-chrome style="height:72px; flex-shrink:0; display:flex; align-items:center; padding:0 20px 0 12px; gap:8px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+        <button onClick="{{ back }}" style="width:44px; height:44px; border-radius:9999px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--md-sys-color-on-surface-variant);"><span class="md-icon">arrow_back</span></button>
+        <span style="font-family:var(--md-sys-typescale-brand-font); font-size:22px; font-weight:600; color:var(--md-sys-color-on-surface); flex:1;">{{ pd.name }}</span>
+        <button onClick="{{ runScan }}" disabled="{{ pd.runDisabled }}" style="display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 22px; border-radius:9999px; border:none; cursor:pointer; background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:600; opacity:{{ pd.runOpacity }};">
+          <span class="md-icon" style="font-size:18px;">play_arrow</span>스캔 실행
+        </button>
+      </div>
+      <div data-scroll style="flex:1; overflow-y:auto; padding:28px;">
+        <div style="max-width:980px; margin:0 auto;">
+          <div style="display:flex; gap:16px; margin-bottom:24px;">
+            <div style="flex:1; background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); padding:18px 22px;">
+              <div style="font-size:12px; font-weight:600; letter-spacing:0.4px; color:var(--md-sys-color-on-surface-variant); text-transform:uppercase;">소스</div>
+              <div style="font-size:14px; font-weight:600; color:var(--md-sys-color-on-surface); margin-top:6px;">{{ pd.typeKr }}</div>
+              <div style="font-size:12.5px; color:var(--md-sys-color-on-surface-variant); margin-top:4px; font-family:var(--md-sys-typescale-mono-font); word-break:break-all;">{{ pd.value }}</div>
+            </div>
+            <div style="width:200px; background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); padding:18px 22px;">
+              <div style="font-size:12px; font-weight:600; letter-spacing:0.4px; color:var(--md-sys-color-on-surface-variant); text-transform:uppercase;">등록일</div>
+              <div style="font-size:14px; font-weight:600; color:var(--md-sys-color-on-surface); margin-top:6px; font-family:var(--md-sys-typescale-mono-font);">{{ pd.createdLabel }}</div>
+            </div>
+          </div>
+
+          <div style="font-size:15px; font-weight:600; color:var(--md-sys-color-on-surface); margin-bottom:12px;">스캔 이력</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <sc-for list="{{ pd.scans }}" as="s" hint-placeholder-count="2">
+              <div style="background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); padding:18px 22px;">
+                <div style="display:flex; align-items:center; gap:14px;">
+                  <span style="display:inline-flex; align-items:center; padding:4px 14px; border-radius:9999px; font-size:13px; font-weight:600; background:{{ s.statusBg }}; color:{{ s.statusFg }};">{{ s.statusKr }}</span>
+                  <span style="font-size:13px; color:var(--md-sys-color-on-surface-variant); font-family:var(--md-sys-typescale-mono-font);">{{ s.startedLabel }}</span>
+                  <span style="font-size:13px; color:var(--md-sys-color-on-surface-variant);">{{ s.durationLabel }}</span>
+                  <div style="flex:1;"></div>
+                  <sc-if value="{{ s.isDone }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <div style="display:flex; gap:6px;">
+                        <sc-for list="{{ s.sevChips }}" as="c" hint-placeholder-count="3">
+                          <span style="display:inline-flex; align-items:center; padding:3px 10px; border-radius:9999px; font-size:12px; font-weight:600; background:{{ c.bg }}; color:{{ c.fg }};">{{ c.kr }} {{ c.count }}</span>
+                        </sc-for>
+                      </div>
+                      <button onClick="{{ s.onOpen }}" style="display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 16px; border-radius:9999px; border:1px solid var(--md-sys-color-outline); background:transparent; color:var(--md-sys-color-primary); font-family:var(--md-sys-typescale-plain-font); font-size:13px; font-weight:600; cursor:pointer;">결과 보기<span class="md-icon" style="font-size:18px;">chevron_right</span></button>
+                    </div>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ s.isRunning }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--md-sys-color-outline-variant); display:flex; flex-direction:column; gap:10px;">
+                    <sc-for list="{{ s.steps }}" as="st" hint-placeholder-count="5">
+                      <div style="display:flex; align-items:center; gap:12px;">
+                        <sc-if value="{{ st.done }}" hint-placeholder-val="{{ true }}"><span class="md-icon is-filled" style="font-size:20px; color:var(--md-sys-color-primary);">check_circle</span></sc-if>
+                        <sc-if value="{{ st.active }}" hint-placeholder-val="{{ false }}"><span style="width:18px; height:18px; margin:1px; border-radius:9999px; border:2px solid var(--md-sys-color-outline-variant); border-top-color:var(--md-sys-color-primary); animation:ossm-spin 0.9s linear infinite; display:inline-block;"></span></sc-if>
+                        <sc-if value="{{ st.pending }}" hint-placeholder-val="{{ false }}"><span class="md-icon" style="font-size:20px; color:var(--md-sys-color-outline-variant);">radio_button_unchecked</span></sc-if>
+                        <span style="font-size:13.5px; color:{{ st.color }}; font-weight:{{ st.weight }};">{{ st.label }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ s.isFailed }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:14px; padding:12px 16px; border-radius:12px; background:var(--md-sys-color-error-container); color:var(--md-sys-color-on-error-container); font-size:13px; font-family:var(--md-sys-typescale-mono-font); display:flex; gap:10px; align-items:flex-start;">
+                    <span class="md-icon" style="font-size:18px; flex-shrink:0;">report</span><span>{{ s.errorMsg }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ pd.empty }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center; padding:48px; color:var(--md-sys-color-on-surface-variant); background:var(--md-sys-color-surface-container-low); border-radius:16px;">
+                <span class="md-icon" style="font-size:48px; opacity:0.5;">policy</span>
+                <div style="margin-top:8px; font-size:14px;">아직 스캔이 없습니다. "스캔 실행"으로 시작하세요</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ SCAN RESULTS ============ -->
+    <sc-if value="{{ isScan }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div data-chrome style="min-height:72px; flex-shrink:0; display:flex; align-items:center; padding:0 20px 0 12px; gap:8px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+        <button onClick="{{ back }}" style="width:44px; height:44px; border-radius:9999px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--md-sys-color-on-surface-variant);"><span class="md-icon">arrow_back</span></button>
+        <div style="flex:1;">
+          <div style="font-family:var(--md-sys-typescale-brand-font); font-size:21px; font-weight:600; color:var(--md-sys-color-on-surface);">스캔 결과</div>
+          <div style="font-size:12px; color:var(--md-sys-color-on-surface-variant); font-family:var(--md-sys-typescale-mono-font);">{{ sr.projName }} · {{ sr.startedLabel }}</div>
+        </div>
+        <button onClick="{{ openReport }}" style="display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 20px; border-radius:9999px; border:none; cursor:pointer; background:var(--md-sys-color-secondary-container); color:var(--md-sys-color-on-secondary-container); font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:600;">
+          <span class="md-icon" style="font-size:18px;">picture_as_pdf</span>PDF 내보내기
+        </button>
+      </div>
+      <div data-scroll style="flex:1; overflow-y:auto; padding:24px 28px;">
+        <div style="max-width:1080px; margin:0 auto;">
+          <!-- summary cards -->
+          <div style="display:flex; gap:16px; margin-bottom:22px;">
+            <div style="flex:1.4; background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); padding:18px 22px;">
+              <div style="display:flex; align-items:baseline; gap:10px;">
+                <span style="font-size:13px; font-weight:600; color:var(--md-sys-color-on-surface-variant);">취약점</span>
+                <span style="font-family:var(--md-sys-typescale-brand-font); font-size:34px; font-weight:700; color:var(--md-sys-color-on-surface); line-height:1;">{{ sr.sumVulnTotal }}</span>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:14px;">
+                <span style="flex:1; text-align:center; padding:5px 0; border-radius:8px; font-size:12px; font-weight:600; background:var(--md-sys-color-error); color:var(--md-sys-color-on-error);">심각 {{ sr.sumVulnC }}</span>
+                <span style="flex:1; text-align:center; padding:5px 0; border-radius:8px; font-size:12px; font-weight:600; background:var(--md-sys-color-error-container); color:var(--md-sys-color-on-error-container);">높음 {{ sr.sumVulnH }}</span>
+                <span style="flex:1; text-align:center; padding:5px 0; border-radius:8px; font-size:12px; font-weight:600; background:var(--md-sys-color-tertiary-container); color:var(--md-sys-color-on-tertiary-container);">보통 {{ sr.sumVulnM }}</span>
+                <span style="flex:1; text-align:center; padding:5px 0; border-radius:8px; font-size:12px; font-weight:600; background:var(--md-sys-color-secondary-container); color:var(--md-sys-color-on-secondary-container);">낮음 {{ sr.sumVulnL }}</span>
+              </div>
+            </div>
+            <div style="flex:1; background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); padding:18px 22px;">
+              <div style="display:flex; align-items:baseline; gap:10px;">
+                <span style="font-size:13px; font-weight:600; color:var(--md-sys-color-on-surface-variant);">라이선스 위험</span>
+                <span style="font-family:var(--md-sys-typescale-brand-font); font-size:34px; font-weight:700; color:var(--md-sys-color-on-surface); line-height:1;">{{ sr.sumLicTotal }}</span>
+              </div>
+              <div style="margin-top:18px; font-size:13px; color:var(--md-sys-color-on-surface-variant);">고위험 <b style="color:var(--md-sys-color-on-surface);">{{ sr.sumLicHigh }}</b>건</div>
+            </div>
+            <div style="flex:1; background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); padding:18px 22px;">
+              <div style="display:flex; align-items:baseline; gap:10px;">
+                <span style="font-size:13px; font-weight:600; color:var(--md-sys-color-on-surface-variant);">구성 이슈</span>
+                <span style="font-family:var(--md-sys-typescale-brand-font); font-size:34px; font-weight:700; color:var(--md-sys-color-on-surface); line-height:1;">{{ sr.sumMiscTotal }}</span>
+              </div>
+              <div style="margin-top:18px; font-size:13px; color:var(--md-sys-color-on-surface-variant);">고위험 <b style="color:var(--md-sys-color-on-surface);">{{ sr.sumMiscHigh }}</b>건</div>
+            </div>
+          </div>
+
+          <!-- view switcher -->
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+            <span style="font-size:13px; color:var(--md-sys-color-on-surface-variant);">뷰</span>
+            <div style="display:inline-flex; padding:3px; gap:2px; border-radius:9999px; background:var(--md-sys-color-surface-container-high);">
+              <sc-for list="{{ sr.variantOptions }}" as="v" hint-placeholder-count="3">
+                <button onClick="{{ v.onClick }}" style="height:32px; padding:0 16px; border-radius:9999px; border:none; cursor:pointer; font-family:var(--md-sys-typescale-plain-font); font-size:13px; font-weight:600; background:{{ v.bg }}; color:{{ v.fg }};">{{ v.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- VARIANT: tabs -->
+          <sc-if value="{{ sr.isTabs }}" hint-placeholder-val="{{ true }}">
+          <div style="background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); overflow:hidden;">
+            <div style="display:flex; gap:4px; padding:0 12px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+              <sc-for list="{{ sr.tabOptions }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.onClick }}" style="height:48px; padding:0 18px; background:transparent; border:none; border-bottom:3px solid {{ t.border }}; cursor:pointer; font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:{{ t.weight }}; color:{{ t.color }};">{{ t.label }}</button>
+              </sc-for>
+            </div>
+            <sc-for list="{{ sr.tabFindings }}" as="f" hint-placeholder-count="5">
+              <div style="display:flex; align-items:center; gap:16px; padding:13px 20px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+                <span style="display:inline-flex; align-items:center; justify-content:center; padding:3px 0; width:52px; border-radius:9999px; font-size:12px; font-weight:600; background:{{ f.sevBg }}; color:{{ f.sevFg }}; flex-shrink:0;">{{ f.sevKr }}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px; width:84px; flex-shrink:0; color:var(--md-sys-color-on-surface-variant);"><span class="md-icon" style="font-size:18px;">{{ f.kindIcon }}</span><span style="font-size:13px; font-weight:500;">{{ f.kindKr }}</span></span>
+                <div style="flex:1; min-width:0;"><div style="font-size:14.5px; font-weight:500; color:var(--md-sys-color-on-surface); line-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.title }}</div><div style="font-size:12px; color:var(--md-sys-color-on-surface-variant); margin-top:3px; font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.pkg }} · {{ f.identifier }}</div></div>
+                <div style="flex-shrink:0; width:150px; text-align:right; font-size:12px; color:var(--md-sys-color-on-surface-variant); font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.right }}</div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+          <!-- VARIANT: unified table -->
+          <sc-if value="{{ sr.isTable }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; align-items:center;">
+              <sc-for list="{{ sr.filterKindOptions }}" as="k" hint-placeholder-count="4">
+                <button onClick="{{ k.onClick }}" style="height:32px; padding:0 14px; border-radius:8px; cursor:pointer; border:none; box-shadow:{{ k.stroke }}; background:{{ k.bg }}; color:{{ k.fg }}; font-family:var(--md-sys-typescale-plain-font); font-size:13px; font-weight:600;">{{ k.label }}</button>
+              </sc-for>
+              <span style="width:1px; height:24px; background:var(--md-sys-color-outline-variant); margin:0 4px;"></span>
+              <sc-for list="{{ sr.filterSevOptions }}" as="sv" hint-placeholder-count="6">
+                <button onClick="{{ sv.onClick }}" style="height:32px; padding:0 14px; border-radius:8px; cursor:pointer; border:none; box-shadow:{{ sv.stroke }}; background:{{ sv.bg }}; color:{{ sv.fg }}; font-family:var(--md-sys-typescale-plain-font); font-size:13px; font-weight:600;">{{ sv.label }}</button>
+              </sc-for>
+            </div>
+            <div style="font-size:12.5px; color:var(--md-sys-color-on-surface-variant); margin-bottom:8px;">{{ sr.filteredCount }}</div>
+            <div style="background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); overflow:hidden;">
+              <div style="display:flex; align-items:center; gap:16px; padding:11px 20px; border-bottom:1px solid var(--md-sys-color-outline-variant); background:var(--md-sys-color-surface-container);">
+                <span style="width:52px; flex-shrink:0; font-size:11px; font-weight:700; letter-spacing:0.4px; color:var(--md-sys-color-on-surface-variant); text-transform:uppercase;">심각도</span>
+                <span style="width:84px; flex-shrink:0; font-size:11px; font-weight:700; letter-spacing:0.4px; color:var(--md-sys-color-on-surface-variant); text-transform:uppercase;">종류</span>
+                <span style="flex:1; font-size:11px; font-weight:700; letter-spacing:0.4px; color:var(--md-sys-color-on-surface-variant); text-transform:uppercase;">제목 · 대상</span>
+                <span style="width:150px; flex-shrink:0; text-align:right; font-size:11px; font-weight:700; letter-spacing:0.4px; color:var(--md-sys-color-on-surface-variant); text-transform:uppercase;">조치</span>
+              </div>
+              <sc-for list="{{ sr.filteredFindings }}" as="f" hint-placeholder-count="6">
+                <div style="display:flex; align-items:center; gap:16px; padding:13px 20px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+                  <span style="display:inline-flex; align-items:center; justify-content:center; padding:3px 0; width:52px; border-radius:9999px; font-size:12px; font-weight:600; background:{{ f.sevBg }}; color:{{ f.sevFg }}; flex-shrink:0;">{{ f.sevKr }}</span>
+                  <span style="display:inline-flex; align-items:center; gap:6px; width:84px; flex-shrink:0; color:var(--md-sys-color-on-surface-variant);"><span class="md-icon" style="font-size:18px;">{{ f.kindIcon }}</span><span style="font-size:13px; font-weight:500;">{{ f.kindKr }}</span></span>
+                  <div style="flex:1; min-width:0;"><div style="font-size:14.5px; font-weight:500; color:var(--md-sys-color-on-surface); line-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.title }}</div><div style="font-size:12px; color:var(--md-sys-color-on-surface-variant); margin-top:3px; font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.pkg }} · {{ f.identifier }}</div></div>
+                  <div style="flex-shrink:0; width:150px; text-align:right; font-size:12px; color:var(--md-sys-color-on-surface-variant); font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.right }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          </sc-if>
+
+          <!-- VARIANT: by severity -->
+          <sc-if value="{{ sr.isSeverity }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <sc-for list="{{ sr.severityGroups }}" as="g" hint-placeholder-count="4">
+              <div style="background:var(--md-sys-color-surface-container-low); border-radius:16px; box-shadow:var(--md-sys-elevation-level1); overflow:hidden;">
+                <div onClick="{{ g.onToggle }}" style="display:flex; align-items:center; gap:14px; padding:14px 20px; cursor:pointer;">
+                  <span style="display:inline-flex; align-items:center; justify-content:center; padding:4px 16px; border-radius:9999px; font-size:13px; font-weight:700; background:{{ g.bg }}; color:{{ g.fg }};">{{ g.kr }}</span>
+                  <span style="font-size:14px; color:var(--md-sys-color-on-surface-variant);">{{ g.count }}건</span>
+                  <div style="flex:1;"></div>
+                  <span class="md-icon" style="font-size:24px; color:var(--md-sys-color-on-surface-variant); transform:{{ g.chevron }};">expand_more</span>
+                </div>
+                <sc-if value="{{ g.open }}" hint-placeholder-val="{{ true }}">
+                <div style="border-top:1px solid var(--md-sys-color-outline-variant);">
+                  <sc-for list="{{ g.findings }}" as="f" hint-placeholder-count="3">
+                    <div style="display:flex; align-items:center; gap:16px; padding:13px 20px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+                      <span style="display:inline-flex; align-items:center; gap:6px; width:84px; flex-shrink:0; color:var(--md-sys-color-on-surface-variant);"><span class="md-icon" style="font-size:18px;">{{ f.kindIcon }}</span><span style="font-size:13px; font-weight:500;">{{ f.kindKr }}</span></span>
+                      <div style="flex:1; min-width:0;"><div style="font-size:14.5px; font-weight:500; color:var(--md-sys-color-on-surface); line-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.title }}</div><div style="font-size:12px; color:var(--md-sys-color-on-surface-variant); margin-top:3px; font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.pkg }} · {{ f.identifier }}</div></div>
+                      <div style="flex-shrink:0; width:150px; text-align:right; font-size:12px; color:var(--md-sys-color-on-surface-variant); font-family:var(--md-sys-typescale-mono-font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ f.right }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ============ REPORT ============ -->
+    <sc-if value="{{ isReport }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+      <div data-chrome style="height:72px; flex-shrink:0; display:flex; align-items:center; padding:0 20px 0 12px; gap:8px; border-bottom:1px solid var(--md-sys-color-outline-variant);">
+        <button onClick="{{ back }}" style="width:44px; height:44px; border-radius:9999px; border:none; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--md-sys-color-on-surface-variant);"><span class="md-icon">arrow_back</span></button>
+        <span style="font-family:var(--md-sys-typescale-brand-font); font-size:21px; font-weight:600; color:var(--md-sys-color-on-surface); flex:1;">보고서 미리보기</span>
+        <button onClick="{{ printReport }}" style="display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 22px; border-radius:9999px; border:none; cursor:pointer; background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:600;"><span class="md-icon" style="font-size:18px;">print</span>인쇄 · PDF 저장</button>
+      </div>
+      <div data-scroll data-reportbg style="flex:1; overflow-y:auto; padding:32px; background:var(--md-sys-color-surface-dim);">
+        <div data-report style="max-width:820px; margin:0 auto; background:var(--md-sys-color-surface-container-lowest); border-radius:8px; box-shadow:var(--md-sys-elevation-level2); padding:56px 60px; color:#1b1b1f;">
+          <!-- header -->
+          <div style="display:flex; align-items:flex-start; border-bottom:2px solid #1b1b1f; padding-bottom:18px;">
+            <div style="flex:1;">
+              <div style="font-size:12px; font-weight:700; letter-spacing:1px; color:#6750A4; text-transform:uppercase;">오픈소스 관리 솔루션 · OSSM</div>
+              <div style="font-family:var(--md-sys-typescale-brand-font); font-size:30px; font-weight:700; margin-top:6px;">오픈소스 스캔 보고서</div>
+              <div style="font-size:15px; color:#49454f; margin-top:4px;">{{ rp.projName }}</div>
+            </div>
+            <div style="text-align:right; font-size:12px; color:#49454f; font-family:var(--md-sys-typescale-mono-font); line-height:1.7;">
+              <div>생성일 {{ rp.generated }}</div>
+              <div>Trivy {{ rp.trivy }}</div>
+            </div>
+          </div>
+          <!-- meta -->
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 32px; margin-top:20px; font-size:13px;">
+            <div><span style="color:#79747e;">소스 유형</span><div style="font-weight:600; margin-top:2px;">{{ rp.source }}</div></div>
+            <div><span style="color:#79747e;">대상</span><div style="font-weight:600; margin-top:2px; font-family:var(--md-sys-typescale-mono-font); word-break:break-all;">{{ rp.sourceVal }}</div></div>
+            <div><span style="color:#79747e;">스캔 일시</span><div style="font-weight:600; margin-top:2px; font-family:var(--md-sys-typescale-mono-font);">{{ rp.scanLabel }}</div></div>
+            <div><span style="color:#79747e;">총 발견</span><div style="font-weight:600; margin-top:2px;">{{ rp.grandTotal }}건</div></div>
+          </div>
+
+          <!-- exec summary -->
+          <div style="font-size:16px; font-weight:700; margin:32px 0 12px;">요약</div>
+          <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead><tr style="border-bottom:1.5px solid #1b1b1f;">
+              <th style="text-align:left; padding:8px 8px; font-weight:700;">심각도</th>
+              <th style="text-align:right; padding:8px 8px; font-weight:700;">취약점</th>
+              <th style="text-align:right; padding:8px 8px; font-weight:700;">라이선스</th>
+              <th style="text-align:right; padding:8px 8px; font-weight:700;">구성</th>
+              <th style="text-align:right; padding:8px 8px; font-weight:700;">합계</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ rp.rpSevRows }}" as="r" hint-placeholder-count="4">
+                <tr style="border-bottom:1px solid #cac4d0;">
+                  <td style="padding:8px;"><span style="display:inline-block; padding:2px 12px; border-radius:9999px; font-size:12px; font-weight:600; background:{{ r.bg }}; color:{{ r.fg }};">{{ r.kr }}</span></td>
+                  <td style="text-align:right; padding:8px; font-family:var(--md-sys-typescale-mono-font);">{{ r.vuln }}</td>
+                  <td style="text-align:right; padding:8px; font-family:var(--md-sys-typescale-mono-font);">{{ r.lic }}</td>
+                  <td style="text-align:right; padding:8px; font-family:var(--md-sys-typescale-mono-font);">{{ r.mis }}</td>
+                  <td style="text-align:right; padding:8px; font-weight:700; font-family:var(--md-sys-typescale-mono-font);">{{ r.total }}</td>
+                </tr>
+              </sc-for>
+              <tr style="border-top:1.5px solid #1b1b1f;">
+                <td style="padding:8px; font-weight:700;">합계</td>
+                <td style="text-align:right; padding:8px; font-weight:700; font-family:var(--md-sys-typescale-mono-font);">{{ rp.totalVuln }}</td>
+                <td style="text-align:right; padding:8px; font-weight:700; font-family:var(--md-sys-typescale-mono-font);">{{ rp.totalLic }}</td>
+                <td style="text-align:right; padding:8px; font-weight:700; font-family:var(--md-sys-typescale-mono-font);">{{ rp.totalMis }}</td>
+                <td style="text-align:right; padding:8px; font-weight:700; font-family:var(--md-sys-typescale-mono-font);">{{ rp.grandTotal }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- vuln section -->
+          <sc-if value="{{ rp.hasVuln }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:16px; font-weight:700; margin:30px 0 12px;">1. 취약점 (CVE)</div>
+          <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+            <thead><tr style="border-bottom:1.5px solid #1b1b1f; color:#49454f;">
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">심각도</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">패키지</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">CVE</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">설명</th>
+              <th style="text-align:right; padding:7px 8px; font-weight:700;">수정 버전</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ rp.rpVuln }}" as="f" hint-placeholder-count="5">
+                <tr style="border-bottom:1px solid #cac4d0;">
+                  <td style="padding:7px 8px;"><span style="display:inline-block; padding:1px 9px; border-radius:9999px; font-size:11px; font-weight:600; background:{{ f.sevBg }}; color:{{ f.sevFg }};">{{ f.sevKr }}</span></td>
+                  <td style="padding:7px 8px; font-family:var(--md-sys-typescale-mono-font);">{{ f.pkg }}</td>
+                  <td style="padding:7px 8px; font-family:var(--md-sys-typescale-mono-font);">{{ f.identifier }}</td>
+                  <td style="padding:7px 8px;">{{ f.title }}</td>
+                  <td style="padding:7px 8px; text-align:right; font-family:var(--md-sys-typescale-mono-font);">{{ f.right }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          </sc-if>
+
+          <!-- license section -->
+          <sc-if value="{{ rp.hasLic }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:16px; font-weight:700; margin:30px 0 12px;">2. 라이선스 위험</div>
+          <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+            <thead><tr style="border-bottom:1.5px solid #1b1b1f; color:#49454f;">
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">위험도</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">패키지</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">라이선스</th>
+              <th style="text-align:right; padding:7px 8px; font-weight:700;">분류</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ rp.rpLicense }}" as="f" hint-placeholder-count="3">
+                <tr style="border-bottom:1px solid #cac4d0;">
+                  <td style="padding:7px 8px;"><span style="display:inline-block; padding:1px 9px; border-radius:9999px; font-size:11px; font-weight:600; background:{{ f.sevBg }}; color:{{ f.sevFg }};">{{ f.sevKr }}</span></td>
+                  <td style="padding:7px 8px; font-family:var(--md-sys-typescale-mono-font);">{{ f.pkg }}</td>
+                  <td style="padding:7px 8px; font-family:var(--md-sys-typescale-mono-font);">{{ f.identifier }}</td>
+                  <td style="padding:7px 8px; text-align:right;">{{ f.right }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          </sc-if>
+
+          <!-- misconfig section -->
+          <sc-if value="{{ rp.hasMisc }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:16px; font-weight:700; margin:30px 0 12px;">3. 구성 (Misconfiguration)</div>
+          <table style="width:100%; border-collapse:collapse; font-size:12.5px;">
+            <thead><tr style="border-bottom:1.5px solid #1b1b1f; color:#49454f;">
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">심각도</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">대상</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">룰</th>
+              <th style="text-align:left; padding:7px 8px; font-weight:700;">제목</th>
+              <th style="text-align:right; padding:7px 8px; font-weight:700;">해결</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ rp.rpMisc }}" as="f" hint-placeholder-count="3">
+                <tr style="border-bottom:1px solid #cac4d0;">
+                  <td style="padding:7px 8px;"><span style="display:inline-block; padding:1px 9px; border-radius:9999px; font-size:11px; font-weight:600; background:{{ f.sevBg }}; color:{{ f.sevFg }};">{{ f.sevKr }}</span></td>
+                  <td style="padding:7px 8px; font-family:var(--md-sys-typescale-mono-font);">{{ f.pkg }}</td>
+                  <td style="padding:7px 8px; font-family:var(--md-sys-typescale-mono-font);">{{ f.identifier }}</td>
+                  <td style="padding:7px 8px;">{{ f.title }}</td>
+                  <td style="padding:7px 8px; text-align:right;">{{ f.right }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          </sc-if>
+
+          <div style="margin-top:40px; padding-top:14px; border-top:1px solid #cac4d0; font-size:11px; color:#79747e;">본 보고서는 Trivy 스캔 결과를 OSSM이 정규화·분류하여 생성했습니다. 라이선스 위험도는 OSSM 룩업 테이블 기준이며 법적 판단을 대체하지 않습니다.</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ADD PROJECT DIALOG -->
+  <sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeDialog }}" style="position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.32); display:flex; align-items:center; justify-content:center; padding:24px;">
+    <div onClick="{{ stop }}" style="width:100%; max-width:480px; background:var(--md-sys-color-surface-container-high); border-radius:28px; padding:24px 26px; box-shadow:var(--md-sys-elevation-level3);">
+      <div style="font-family:var(--md-sys-typescale-brand-font); font-size:22px; font-weight:600; color:var(--md-sys-color-on-surface);">프로젝트 추가</div>
+      <div style="font-size:13px; color:var(--md-sys-color-on-surface-variant); margin-top:6px;">GitHub 저장소 또는 로컬 경로를 등록합니다</div>
+      <div style="display:inline-flex; margin-top:18px; padding:3px; gap:2px; border-radius:9999px; background:var(--md-sys-color-surface-container-highest);">
+        <button onClick="{{ onTypeGithub }}" style="height:34px; padding:0 18px; border-radius:9999px; border:none; cursor:pointer; font-family:var(--md-sys-typescale-plain-font); font-size:13px; font-weight:600; background:{{ dlg.ghBg }}; color:{{ dlg.ghFg }};">GitHub</button>
+        <button onClick="{{ onTypeLocal }}" style="height:34px; padding:0 18px; border-radius:9999px; border:none; cursor:pointer; font-family:var(--md-sys-typescale-plain-font); font-size:13px; font-weight:600; background:{{ dlg.locBg }}; color:{{ dlg.locFg }};">로컬 경로</button>
+      </div>
+      <div style="margin-top:18px; display:flex; flex-direction:column; gap:14px;">
+        <label style="display:flex; flex-direction:column; gap:6px;">
+          <span style="font-size:12px; font-weight:600; color:var(--md-sys-color-on-surface-variant);">이름</span>
+          <input value="{{ newName }}" onChange="{{ onNewName }}" placeholder="예: acme-corp/web-frontend" style="height:48px; border-radius:8px; border:1px solid var(--md-sys-color-outline); background:transparent; padding:0 14px; font-family:var(--md-sys-typescale-plain-font); font-size:15px; color:var(--md-sys-color-on-surface); outline:none;">
+        </label>
+        <label style="display:flex; flex-direction:column; gap:6px;">
+          <span style="font-size:12px; font-weight:600; color:var(--md-sys-color-on-surface-variant);">{{ dlg.valueLabel }}</span>
+          <input value="{{ newValue }}" onChange="{{ onNewValue }}" placeholder="{{ dlg.valuePlaceholder }}" style="height:48px; border-radius:8px; border:1px solid var(--md-sys-color-outline); background:transparent; padding:0 14px; font-family:var(--md-sys-typescale-mono-font); font-size:14px; color:var(--md-sys-color-on-surface); outline:none;">
+        </label>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
+        <button onClick="{{ closeDialog }}" style="height:40px; padding:0 20px; border-radius:9999px; border:none; background:transparent; color:var(--md-sys-color-primary); font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:600; cursor:pointer;">취소</button>
+        <button onClick="{{ addProject }}" style="height:40px; padding:0 22px; border-radius:9999px; border:none; background:var(--md-sys-color-primary); color:var(--md-sys-color-on-primary); font-family:var(--md-sys-typescale-plain-font); font-size:14px; font-weight:600; cursor:pointer;">추가</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- SNACKBAR -->
+  <sc-if value="{{ snackOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:1000; background:var(--md-sys-color-inverse-surface); color:var(--md-sys-color-inverse-on-surface); border-radius:8px; padding:14px 20px; box-shadow:var(--md-sys-elevation-level3); font-size:14px; display:flex; align-items:center; gap:16px; min-width:280px;">
+    <span style="flex:1;">{{ snackMsg }}</span>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
+  &quot;theme&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;'light'|'dark'&quot; },
+  &quot;githubToken&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;defaultResultsView&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;tabs&quot;, &quot;table&quot;, &quot;severity&quot;], &quot;default&quot;: &quot;tabs&quot;, &quot;tsType&quot;: &quot;string&quot; }
+}">
+class Component extends DCLogic {
+  SCAN_STEPS = ['스캔 대기열 등록', '대상 확보 · 경로 검증', 'Trivy 스캔 실행', '결과 정규화', '위험도 분류 · 집계'];
+
+  state = {
+    screen: 'home', projectId: null, scanId: null,
+    variant: 'tabs', tab: 'vuln',
+    filterKind: 'all', filterSev: 'all',
+    open: { critical: true, high: true, medium: true, low: true, unknown: true },
+    dialogOpen: false, newType: 'github', newName: '', newValue: '',
+    snack: null,
+    projects: this.seedProjects(),
+  };
+
+  componentDidMount() {
+    if (!document.getElementById('ossm-icon-font')) {
+      const l = document.createElement('link');
+      l.id = 'ossm-icon-font';
+      l.rel = 'stylesheet';
+      l.href = 'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block';
+      document.head.appendChild(l);
+    }
+    const v = this.props.defaultResultsView;
+    if (v && v !== this.state.variant) this.setState({ variant: v });
+  }
+  componentWillUnmount() {
+    if (this.scanTimer) clearInterval(this.scanTimer);
+    if (this.snackTimer) clearTimeout(this.snackTimer);
+  }
+
+  // ---------- data ----------
+  baseFindings() {
+    return [
+      { kind: 'vuln', severity: 'critical', pkg: 'jsonwebtoken', installed: '8.5.1', fixed: '9.0.0', identifier: 'CVE-2022-23529', title: 'JWT 서명 검증 우회로 인증 우회 가능' },
+      { kind: 'vuln', severity: 'high', pkg: 'lodash', installed: '4.17.19', fixed: '4.17.21', identifier: 'CVE-2021-23337', title: 'template 함수를 통한 명령 주입' },
+      { kind: 'vuln', severity: 'high', pkg: 'axios', installed: '0.21.1', fixed: '0.21.2', identifier: 'CVE-2021-3749', title: '정규식 DoS (ReDoS)' },
+      { kind: 'vuln', severity: 'high', pkg: 'node-fetch', installed: '2.6.6', fixed: '2.6.7', identifier: 'CVE-2022-0235', title: '리다이렉트 시 쿠키·인증 헤더 유출' },
+      { kind: 'vuln', severity: 'medium', pkg: 'minimist', installed: '1.2.5', fixed: '1.2.6', identifier: 'CVE-2021-44906', title: '프로토타입 오염' },
+      { kind: 'vuln', severity: 'medium', pkg: 'qs', installed: '6.5.2', fixed: '6.5.3', identifier: 'CVE-2022-24999', title: '프로토타입 오염을 통한 DoS' },
+      { kind: 'vuln', severity: 'medium', pkg: 'tar', installed: '6.1.0', fixed: '6.1.11', identifier: 'CVE-2021-37713', title: '경로 탐색(arbitrary file write)' },
+      { kind: 'vuln', severity: 'low', pkg: 'semver', installed: '7.3.4', fixed: '7.5.2', identifier: 'CVE-2022-25883', title: '정규식 DoS (ReDoS)' },
+      { kind: 'vuln', severity: 'low', pkg: 'debug', installed: '2.6.8', fixed: '2.6.9', identifier: 'CVE-2017-16137', title: '정규식 DoS' },
+      { kind: 'license', severity: 'high', pkg: 'ghostscript4js', identifier: 'AGPL-3.0', title: '강한 카피레프트 라이선스', note: '강한 카피레프트' },
+      { kind: 'license', severity: 'medium', pkg: 'parquetjs', identifier: 'MPL-2.0', title: '약한 카피레프트 라이선스', note: '약한 카피레프트' },
+      { kind: 'license', severity: 'unknown', pkg: 'legacy-xml-parser', identifier: 'SEE LICENSE IN LICENSE', title: '분류되지 않은 라이선스', note: '검토 필요' },
+      { kind: 'misconfig', severity: 'high', pkg: 'Dockerfile', identifier: 'DS002', title: '컨테이너가 root 사용자로 실행됨', note: 'USER 지시문 지정' },
+      { kind: 'misconfig', severity: 'medium', pkg: 'Dockerfile', identifier: 'DS026', title: 'HEALTHCHECK 미설정', note: 'HEALTHCHECK 추가' },
+      { kind: 'misconfig', severity: 'medium', pkg: 'docker-compose.yml', identifier: 'DS031', title: '환경변수에 하드코딩된 시크릿 의심', note: '시크릿 매니저 사용' },
+      { kind: 'misconfig', severity: 'medium', pkg: 'repository', identifier: 'GH-BRANCH', title: '기본 브랜치 보호 규칙 미설정', note: '필수 리뷰 설정', hygiene: true },
+      { kind: 'misconfig', severity: 'low', pkg: 'repository', identifier: 'GH-SECURITY', title: 'SECURITY.md 보안 정책 파일 없음', note: '신고 절차 문서화', hygiene: true },
+    ];
+  }
+  leanFindings() {
+    const ids = ['CVE-2021-44906', 'CVE-2022-24999', 'CVE-2022-25883', 'SEE LICENSE IN LICENSE', 'DS026'];
+    return this.baseFindings().filter(f => ids.includes(f.identifier));
+  }
+  seedProjects() {
+    return [
+      { id: 'p1', name: 'acme-corp/web-frontend', type: 'github', value: 'https://github.com/acme-corp/web-frontend', created: '2026-06-12',
+        scans: [{ id: 's1', status: 'done', started: '2026-06-18 14:32', finished: '2026-06-18 14:34', duration: '1분 48초', trivy: '0.50.1', findings: this.baseFindings() }] },
+      { id: 'p2', name: 'payments-api', type: 'github', value: 'https://github.com/acme-corp/payments-api', created: '2026-06-10',
+        scans: [
+          { id: 's2', status: 'done', started: '2026-06-17 09:05', finished: '2026-06-17 09:06', duration: '52초', trivy: '0.50.1', findings: this.leanFindings() },
+          { id: 's3', status: 'failed', started: '2026-06-15 22:10', finished: '2026-06-15 22:10', duration: '3초', error: 'git clone 실패: repository not found 또는 토큰 인증 필요 (exit 128)', findings: [] },
+        ] },
+      { id: 'p3', name: 'internal-tools', type: 'local', value: '/Users/dev/projects/internal-tools', created: '2026-06-19', scans: [] },
+    ];
+  }
+
+  // ---------- meta ----------
+  sevMeta() {
+    return {
+      critical: { kr: '심각', bg: 'var(--md-sys-color-error)', fg: 'var(--md-sys-color-on-error)', order: 0 },
+      high: { kr: '높음', bg: 'var(--md-sys-color-error-container)', fg: 'var(--md-sys-color-on-error-container)', order: 1 },
+      medium: { kr: '보통', bg: 'var(--md-sys-color-tertiary-container)', fg: 'var(--md-sys-color-on-tertiary-container)', order: 2 },
+      low: { kr: '낮음', bg: 'var(--md-sys-color-secondary-container)', fg: 'var(--md-sys-color-on-secondary-container)', order: 3 },
+      unknown: { kr: '미상', bg: 'var(--md-sys-color-surface-container-highest)', fg: 'var(--md-sys-color-on-surface-variant)', order: 4 },
+    };
+  }
+  kindMeta() {
+    return { vuln: { kr: '취약점', icon: 'bug_report' }, license: { kr: '라이선스', icon: 'gavel' }, misconfig: { kr: '구성', icon: 'rule' } };
+  }
+
+  // ---------- helpers ----------
+  effFindings(scan) {
+    const t = this.props.githubToken;
+    return (scan && scan.findings ? scan.findings : []).filter(f => t ? true : !f.hygiene);
+  }
+  prep(f) {
+    const sm = this.sevMeta()[f.severity] || this.sevMeta().unknown;
+    const km = this.kindMeta()[f.kind];
+    let right;
+    if (f.kind === 'vuln') right = f.fixed ? (f.installed + ' → ' + f.fixed) : '수정버전 없음';
+    else right = f.note || '';
+    return { ...f, sevKr: sm.kr, sevBg: sm.bg, sevFg: sm.fg, kindKr: km.kr, kindIcon: km.icon, right };
+  }
+  sortF(arr) {
+    const m = this.sevMeta();
+    return arr.slice().sort((a, b) => (m[a.severity].order - m[b.severity].order) || a.kind.localeCompare(b.kind) || a.pkg.localeCompare(b.pkg));
+  }
+  summaryOf(fs) {
+    const s = { critical: 0, high: 0, medium: 0, low: 0, unknown: 0 };
+    const k = { vuln: 0, license: 0, misconfig: 0 };
+    fs.forEach(f => { s[f.severity]++; k[f.kind]++; });
+    const licHigh = fs.filter(f => f.kind === 'license' && (f.severity === 'high' || f.severity === 'critical')).length;
+    const miscHigh = fs.filter(f => f.kind === 'misconfig' && (f.severity === 'high' || f.severity === 'critical')).length;
+    return { sev: s, kind: k, licHigh, miscHigh, total: fs.length };
+  }
+  sevChips(fs) {
+    const s = this.summaryOf(fs).sev, m = this.sevMeta();
+    return ['critical', 'high', 'medium', 'low', 'unknown'].filter(k => s[k] > 0).map(k => ({ key: k, count: s[k], kr: m[k].kr, bg: m[k].bg, fg: m[k].fg }));
+  }
+  fmtNow() {
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return '2026-06-19 ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  activeProject() { return (this.state.projects || []).find(p => p.id === this.state.projectId); }
+  activeScan() { const p = this.activeProject(); return p ? p.scans.find(s => s.id === this.state.scanId) : null; }
+
+  // ---------- navigation ----------
+  goHome = () => this.setState({ screen: 'home', projectId: null, scanId: null });
+  openProject = (id) => this.setState({ screen: 'project', projectId: id });
+  openScan = (id) => this.setState({ screen: 'scan', scanId: id });
+  openReport = () => this.setState({ screen: 'report' });
+  back = () => {
+    const s = this.state.screen;
+    if (s === 'project') this.goHome();
+    else if (s === 'scan') this.setState({ screen: 'project', scanId: null });
+    else if (s === 'report') this.setState({ screen: 'scan' });
+  };
+  onNavSettings = () => this.setSnack('설정·인증·권한은 PoC 비범위입니다');
+  stop = (e) => { if (e && e.stopPropagation) e.stopPropagation(); };
+
+  setVariant = (v) => this.setState({ variant: v });
+  setTab = (t) => this.setState({ tab: t });
+  setFilterKind = (k) => this.setState({ filterKind: k });
+  setFilterSev = (s) => this.setState({ filterSev: s });
+  toggleGroup = (sev) => this.setState(st => ({ open: { ...st.open, [sev]: !st.open[sev] } }));
+
+  openDialog = () => this.setState({ dialogOpen: true, newType: 'github', newName: '', newValue: '' });
+  closeDialog = () => this.setState({ dialogOpen: false });
+  onTypeGithub = () => this.setState({ newType: 'github' });
+  onTypeLocal = () => this.setState({ newType: 'local' });
+  onNewName = (e) => this.setState({ newName: e.target.value });
+  onNewValue = (e) => this.setState({ newValue: e.target.value });
+  addProject = () => {
+    const { newType, newName, newValue } = this.state;
+    if (!newName.trim() || !newValue.trim()) { this.setSnack('이름과 경로를 입력하세요'); return; }
+    const proj = { id: 'p' + Date.now(), name: newName.trim(), type: newType, value: newValue.trim(), created: '2026-06-19', scans: [] };
+    this.setState(st => ({ projects: [...st.projects, proj], dialogOpen: false }));
+    this.setSnack('프로젝트가 추가되었습니다');
+  };
+
+  setSnack(msg) {
+    if (this.snackTimer) clearTimeout(this.snackTimer);
+    this.setState({ snack: msg });
+    this.snackTimer = setTimeout(() => this.setState({ snack: null }), 3200);
+  }
+
+  runScan = () => {
+    const p = this.activeProject();
+    if (!p || p.scans.some(s => s.status === 'running')) return;
+    const scan = { id: 's' + Date.now(), status: 'running', step: 0, started: this.fmtNow(), findings: [], trivy: '0.50.1' };
+    p.scans.unshift(scan);
+    this.forceUpdate();
+    this.scanTimer = setInterval(() => {
+      scan.step++;
+      if (scan.step >= 5) {
+        scan.status = 'done'; scan.step = 5; scan.findings = this.baseFindings();
+        scan.finished = this.fmtNow(); scan.duration = '2분 06초';
+        clearInterval(this.scanTimer); this.scanTimer = null;
+        this.setSnack('스캔이 완료되었습니다');
+      }
+      this.forceUpdate();
+    }, 1100);
+  };
+
+  // ---------- render ----------
+  renderVals() {
+    const screen = this.state.screen;
+    const out = {
+      themeAttr: this.props.theme === 'dark' ? 'dark' : '',
+      isHome: screen === 'home', isProject: screen === 'project', isScan: screen === 'scan', isReport: screen === 'report',
+      goHome: this.goHome, back: this.back, onNavSettings: this.onNavSettings, stop: this.stop,
+      openDialog: this.openDialog, closeDialog: this.closeDialog, addProject: this.addProject,
+      onTypeGithub: this.onTypeGithub, onTypeLocal: this.onTypeLocal, onNewName: this.onNewName, onNewValue: this.onNewValue,
+      newName: this.state.newName, newValue: this.state.newValue, dialogOpen: this.state.dialogOpen,
+      runScan: this.runScan, openReport: this.openReport, printReport: () => window.print(),
+      snackOpen: !!this.state.snack, snackMsg: this.state.snack || '',
+    };
+
+    // dialog
+    const tG = this.state.newType === 'github';
+    out.dlg = {
+      ghBg: tG ? 'var(--md-sys-color-primary)' : 'transparent', ghFg: tG ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+      locBg: !tG ? 'var(--md-sys-color-primary)' : 'transparent', locFg: !tG ? 'var(--md-sys-color-on-primary)' : 'var(--md-sys-color-on-surface-variant)',
+      valueLabel: tG ? '저장소 URL' : '로컬 경로',
+      valuePlaceholder: tG ? 'https://github.com/org/repo' : '/path/to/project',
+    };
+
+    // home
+    out.homeProjects = (this.state.projects || []).map(p => {
+      const latest = p.scans[0];
+      let done = false, failed = false, none = false, sevChips = [], metaLabel = '';
+      if (!latest) { none = true; metaLabel = ''; }
+      else if (latest.status === 'failed') { failed = true; metaLabel = latest.started; }
+      else if (latest.status === 'running') { metaLabel = '스캔 진행 중…'; }
+      else { done = true; const fs = this.effFindings(latest); sevChips = this.sevChips(fs); metaLabel = latest.started; }
+      return { id: p.id, name: p.name, typeKr: p.type === 'github' ? 'GitHub' : '로컬', typeIcon: p.type === 'github' ? 'public' : 'folder', value: p.value, onOpen: () => this.openProject(p.id), done, failed, none, sevChips, metaLabel };
+    });
+
+    // project detail
+    const ap = this.activeProject();
+    if (ap) {
+      const scans = ap.scans.map(s => {
+        const base = { id: s.id, startedLabel: s.started };
+        if (s.status === 'done') {
+          const fs = this.effFindings(s);
+          return { ...base, isDone: true, isRunning: false, isFailed: false, statusKr: '완료', statusBg: 'var(--md-sys-color-secondary-container)', statusFg: 'var(--md-sys-color-on-secondary-container)', durationLabel: s.duration || '', totalLabel: '총 ' + fs.length + '건', sevChips: this.sevChips(fs), onOpen: () => this.openScan(s.id) };
+        }
+        if (s.status === 'running') {
+          const steps = this.SCAN_STEPS.map((lb, i) => ({ label: lb, done: i < s.step, active: i === s.step, pending: i > s.step, color: i <= s.step ? 'var(--md-sys-color-on-surface)' : 'var(--md-sys-color-on-surface-variant)', weight: i === s.step ? 600 : 400 }));
+          return { ...base, isDone: false, isRunning: true, isFailed: false, statusKr: '진행 중', statusBg: 'var(--md-sys-color-tertiary-container)', statusFg: 'var(--md-sys-color-on-tertiary-container)', steps, durationLabel: '', sevChips: [], onOpen: () => {} };
+        }
+        return { ...base, isDone: false, isRunning: false, isFailed: true, statusKr: '실패', statusBg: 'var(--md-sys-color-error-container)', statusFg: 'var(--md-sys-color-on-error-container)', durationLabel: s.duration || '', errorMsg: s.error || '', sevChips: [], onOpen: () => {} };
+      });
+      const running = ap.scans.some(s => s.status === 'running');
+      out.pd = { name: ap.name, typeKr: ap.type === 'github' ? 'GitHub 저장소' : '로컬 경로', value: ap.value, createdLabel: ap.created, scans, runDisabled: running, runOpacity: running ? 0.5 : 1, empty: ap.scans.length === 0 };
+    }
+
+    // scan results
+    const asn = this.activeScan();
+    if (asn && asn.status === 'done') {
+      const fs = this.effFindings(asn);
+      const sm = this.summaryOf(fs);
+      const prepped = this.sortF(fs).map(f => this.prep(f));
+      const variant = this.state.variant;
+      const mkVar = (id, label) => { const sel = variant === id; return { id, label, onClick: () => this.setVariant(id), bg: sel ? 'var(--md-sys-color-secondary-container)' : 'transparent', fg: sel ? 'var(--md-sys-color-on-secondary-container)' : 'var(--md-sys-color-on-surface-variant)' }; };
+      const tab = this.state.tab;
+      const mkTab = (id, label) => { const active = tab === id; return { id, label: label + ' ' + sm.kind[id], active, color: active ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-on-surface-variant)', border: active ? 'var(--md-sys-color-primary)' : 'transparent', weight: active ? 700 : 500, onClick: () => this.setTab(id) }; };
+      const fk = this.state.filterKind, fsv = this.state.filterSev;
+      const mkChip = (cur, set) => (id, label) => { const sel = cur === id; return { id, label, onClick: () => set(id), bg: sel ? 'var(--md-sys-color-secondary-container)' : 'var(--md-sys-color-surface)', fg: sel ? 'var(--md-sys-color-on-secondary-container)' : 'var(--md-sys-color-on-surface-variant)', stroke: sel ? 'none' : 'inset 0 0 0 1px var(--md-sys-color-outline-variant)' }; };
+      const mkK = mkChip(fk, this.setFilterKind), mkS = mkChip(fsv, this.setFilterSev);
+      const m = this.sevMeta();
+      const groups = ['critical', 'high', 'medium', 'low', 'unknown'].map(k => ({ sev: k, kr: m[k].kr, bg: m[k].bg, fg: m[k].fg, count: sm.sev[k], open: this.state.open[k], chevron: this.state.open[k] ? 'rotate(180deg)' : 'rotate(0deg)', onToggle: () => this.toggleGroup(k), findings: prepped.filter(f => f.severity === k) })).filter(g => g.count > 0);
+      out.sr = {
+        projName: ap ? ap.name : '', startedLabel: asn.started,
+        sumVulnTotal: sm.kind.vuln, sumVulnC: sm.sev.critical, sumVulnH: sm.sev.high, sumVulnM: sm.sev.medium, sumVulnL: sm.sev.low,
+        sumLicTotal: sm.kind.license, sumLicHigh: sm.licHigh, sumMiscTotal: sm.kind.misconfig, sumMiscHigh: sm.miscHigh,
+        variantOptions: [mkVar('tabs', '탭'), mkVar('table', '통합 테이블'), mkVar('severity', '심각도별')],
+        isTabs: variant === 'tabs', isTable: variant === 'table', isSeverity: variant === 'severity',
+        tabOptions: [mkTab('vuln', '취약점'), mkTab('license', '라이선스'), mkTab('misconfig', '구성')],
+        tabFindings: prepped.filter(f => f.kind === tab),
+        filterKindOptions: [mkK('all', '전체'), mkK('vuln', '취약점'), mkK('license', '라이선스'), mkK('misconfig', '구성')],
+        filterSevOptions: [mkS('all', '전체'), mkS('critical', '심각'), mkS('high', '높음'), mkS('medium', '보통'), mkS('low', '낮음'), mkS('unknown', '미상')],
+        filteredFindings: prepped.filter(f => (fk === 'all' || f.kind === fk) && (fsv === 'all' || f.severity === fsv)),
+        filteredCount: prepped.filter(f => (fk === 'all' || f.kind === fk) && (fsv === 'all' || f.severity === fsv)).length + '건 표시 중',
+        severityGroups: groups,
+      };
+    }
+
+    // report
+    if (asn && asn.status === 'done') {
+      const fs = this.effFindings(asn);
+      const sm = this.summaryOf(fs);
+      const m = this.sevMeta();
+      const rpSevRows = ['critical', 'high', 'medium', 'low', 'unknown'].filter(k => sm.sev[k] > 0).map(k => {
+        const inK = t => fs.filter(f => f.severity === k && f.kind === t).length;
+        return { kr: m[k].kr, bg: m[k].bg, fg: m[k].fg, vuln: inK('vuln'), lic: inK('license'), mis: inK('misconfig'), total: sm.sev[k] };
+      });
+      const prepped = this.sortF(fs).map(f => this.prep(f));
+      out.rp = {
+        projName: ap ? ap.name : '', source: ap && ap.type === 'github' ? 'GitHub 저장소' : '로컬 경로', sourceVal: ap ? ap.value : '',
+        scanLabel: asn.started, trivy: asn.trivy, generated: this.fmtNow(),
+        rpSevRows, totalVuln: sm.kind.vuln, totalLic: sm.kind.license, totalMis: sm.kind.misconfig, grandTotal: fs.length,
+        rpVuln: prepped.filter(f => f.kind === 'vuln'), rpLicense: prepped.filter(f => f.kind === 'license'), rpMisc: prepped.filter(f => f.kind === 'misconfig'),
+        hasVuln: sm.kind.vuln > 0, hasLic: sm.kind.license > 0, hasMisc: sm.kind.misconfig > 0,
+      };
+    }
+
+    return out;
+  }
+}
+</script>
+</body>
+</html>
