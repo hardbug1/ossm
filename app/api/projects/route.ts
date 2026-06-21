@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { listProjects, insertProject } from "@/lib/db/queries";
 import { projectWithScans, genId } from "@/lib/api/dto";
+import { validateProjectInput } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export async function POST(req: Request) {
   const type = body.type === "local" ? "local" : "github";
   const value = String(body.value ?? "").trim();
   if (!name || !value) return NextResponse.json({ error: "이름과 경로를 입력하세요" }, { status: 400 });
+  const invalid = validateProjectInput(type, value);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
   const db = getDb();
   const created = new Date().toISOString().slice(0, 10);
   const project = insertProject(db, { id: genId("p"), name, type, value, created });
