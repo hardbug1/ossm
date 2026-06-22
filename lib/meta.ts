@@ -48,6 +48,20 @@ export function sevChips(findings: Finding[]) {
   }));
 }
 
+const KIND_ORDER: Kind[] = ["vuln", "license", "misconfig"];
+
+// 종류(취약점/라이선스/구성)별로 묶고, 각 종류 안에서 심각도 칩을 만든다.
+// 발견이 없는 종류는 제외한다.
+export function kindSevGroups(findings: Finding[]) {
+  const groups: { kind: Kind; kindKr: string; kindIcon: string; chips: ReturnType<typeof sevChips> }[] = [];
+  for (const kind of KIND_ORDER) {
+    const inKind = findings.filter((f) => f.kind === kind);
+    if (inKind.length === 0) continue;
+    groups.push({ kind, kindKr: KIND_META[kind].kr, kindIcon: KIND_META[kind].icon, chips: sevChips(inKind) });
+  }
+  return groups;
+}
+
 export interface PreppedFinding extends Finding {
   sevKr: string;
   sevBg: string;

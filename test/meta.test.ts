@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sortFindings, summarize, sevChips, prep, SEV_META } from "@/lib/meta";
+import { sortFindings, summarize, sevChips, prep, SEV_META, kindSevGroups } from "@/lib/meta";
 import type { Finding } from "@/lib/types";
 
 const sample: Finding[] = [
@@ -36,6 +36,22 @@ describe("sevChips", () => {
     expect(keys).toContain("critical");
     expect(keys).not.toContain("unknown");
     expect(chips[0].kr).toBe(SEV_META[chips[0].key].kr);
+  });
+});
+
+describe("kindSevGroups", () => {
+  it("종류 순서(취약점→라이선스→구성)로 묶고, 각 종류 안에서 심각도 칩을 만든다", () => {
+    const groups = kindSevGroups(sample);
+    expect(groups.map((g) => g.kind)).toEqual(["vuln", "license", "misconfig"]);
+    const vuln = groups.find((g) => g.kind === "vuln")!;
+    expect(vuln.kindKr).toBe("취약점");
+    expect(vuln.chips.map((c) => c.key)).toEqual(["critical", "low"]); // 심각도 순
+    expect(groups.find((g) => g.kind === "license")!.chips.map((c) => c.key)).toEqual(["high"]);
+  });
+  it("발견이 없는 종류는 제외한다", () => {
+    const onlyLicense = kindSevGroups(sample.filter((f) => f.kind === "license"));
+    expect(onlyLicense.map((g) => g.kind)).toEqual(["license"]);
+    expect(kindSevGroups([])).toEqual([]);
   });
 });
 

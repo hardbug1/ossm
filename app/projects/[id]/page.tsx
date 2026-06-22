@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { NavRail } from "@/components/NavRail";
 import { Icon } from "@/components/Icon";
 import { fetchProject, triggerScan, type ProjectWithScans } from "@/lib/api/client";
-import { sevChips } from "@/lib/meta";
+import { kindSevGroups } from "@/lib/meta";
 import type { Scan } from "@/lib/types";
 
 const SCAN_STEPS = ["스캔 대기열 등록", "대상 확보 · 경로 검증", "Trivy 스캔 실행", "결과 정규화", "위험도 분류 · 집계"];
@@ -129,7 +129,7 @@ export default function ProjectDetail() {
 
 function ScanCard({ s, onOpen }: { s: Scan; onOpen: () => void }) {
   const sm = STATUS_META[s.status] ?? STATUS_META.queued;
-  const chips = s.status === "done" ? sevChips(s.findings) : [];
+  const groups = s.status === "done" ? kindSevGroups(s.findings) : [];
   const step = s.step ?? 0;
   return (
     <div style={{ background: "var(--md-sys-color-surface-container-low)", borderRadius: 16, boxShadow: "var(--md-sys-elevation-level1)", padding: "18px 22px" }}>
@@ -139,17 +139,30 @@ function ScanCard({ s, onOpen }: { s: Scan; onOpen: () => void }) {
         {s.duration && <span style={{ fontSize: 13, color: "var(--md-sys-color-on-surface-variant)" }}>{s.duration}</span>}
         <div style={{ flex: 1 }} />
         {s.status === "done" && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ display: "flex", gap: 6 }}>
-              {chips.map((c) => (
-                <span key={c.key} style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: 9999, fontSize: 12, fontWeight: 600, background: c.bg, color: c.fg }}>{c.kr} {c.count}</span>
-              ))}
-              {chips.length === 0 && <span style={{ fontSize: 12.5, color: "var(--md-sys-color-on-surface-variant)" }}>발견 없음</span>}
-            </div>
-            <button onClick={onOpen} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 16px", borderRadius: 9999, border: "1px solid var(--md-sys-color-outline)", background: "transparent", color: "var(--md-sys-color-primary)", fontFamily: "var(--md-sys-typescale-plain-font)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>결과 보기<Icon name="chevron_right" size={18} /></button>
-          </div>
+          <button onClick={onOpen} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 16px", borderRadius: 9999, border: "1px solid var(--md-sys-color-outline)", background: "transparent", color: "var(--md-sys-color-primary)", fontFamily: "var(--md-sys-typescale-plain-font)", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>결과 보기<Icon name="chevron_right" size={18} /></button>
         )}
       </div>
+
+      {s.status === "done" && (
+        groups.length === 0 ? (
+          <div style={{ marginTop: 12, fontSize: 12.5, color: "var(--md-sys-color-on-surface-variant)" }}>발견 없음</div>
+        ) : (
+          <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+            {groups.map((g) => (
+              <div key={g.kind} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, minWidth: 78, fontSize: 13, fontWeight: 600, color: "var(--md-sys-color-on-surface-variant)" }}>
+                  <Icon name={g.kindIcon} size={16} />{g.kindKr}
+                </span>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {g.chips.map((c) => (
+                    <span key={c.key} style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: 9999, fontSize: 12, fontWeight: 600, background: c.bg, color: c.fg }}>{c.kr} {c.count}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
 
       {(s.status === "running" || s.status === "queued") && (
         <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--md-sys-color-outline-variant)", display: "flex", flexDirection: "column", gap: 10 }}>

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { NavRail } from "@/components/NavRail";
 import { Icon } from "@/components/Icon";
 import { fetchProjects, createProject, type ProjectWithScans } from "@/lib/api/client";
-import { sevChips } from "@/lib/meta";
+import { KindSevChips } from "@/components/KindSevChips";
 
 export default function Home() {
   const router = useRouter();
@@ -98,7 +98,6 @@ export default function Home() {
                 const failed = latest?.status === "failed";
                 const running = latest?.status === "running";
                 const none = !latest;
-                const chips = done ? sevChips(latest.findings) : [];
                 const metaLabel = none ? "" : running ? "스캔 진행 중…" : latest!.started;
                 return (
                   <div key={p.id} onClick={() => router.push(`/projects/${p.id}`)} style={{ display: "flex", alignItems: "center", gap: 18, padding: "18px 22px", borderBottom: "1px solid var(--md-sys-color-outline-variant)", cursor: "pointer" }}>
@@ -113,14 +112,7 @@ export default function Home() {
                       <div style={{ fontSize: 12.5, color: "var(--md-sys-color-on-surface-variant)", marginTop: 3, fontFamily: "var(--md-sys-typescale-mono-font)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.value}</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-                      {done && (
-                        <div style={{ display: "flex", gap: 6 }}>
-                          {chips.map((c) => (
-                            <span key={c.key} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 9999, fontSize: 12, fontWeight: 600, background: c.bg, color: c.fg }}>{c.kr} {c.count}</span>
-                          ))}
-                          {chips.length === 0 && <span style={{ fontSize: 12.5, color: "var(--md-sys-color-on-surface-variant)" }}>발견 없음</span>}
-                        </div>
-                      )}
+                      {done && <KindSevChips findings={latest.findings} />}
                       {failed && (
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 9999, fontSize: 12.5, fontWeight: 600, background: "var(--md-sys-color-error-container)", color: "var(--md-sys-color-on-error-container)" }}><Icon name="error" size={16} />실패</span>
                       )}
