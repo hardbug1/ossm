@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { NavRail } from "@/components/NavRail";
 import { Icon } from "@/components/Icon";
 import { FindingRow } from "@/components/FindingRow";
@@ -12,8 +12,9 @@ import type { Kind, Scan, Severity } from "@/lib/types";
 type Variant = "tabs" | "table" | "severity";
 const SEV_ORDER: Severity[] = ["critical", "high", "medium", "low", "unknown"];
 
-export default function ScanResults({ params }: { params: { id: string } }) {
+export default function ScanResults() {
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const [scan, setScan] = useState<Scan | null>(null);
   const [projName, setProjName] = useState("");
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export default function ScanResults({ params }: { params: { id: string } }) {
   const [selected, setSelected] = useState<PreppedFinding | null>(null);
 
   useEffect(() => {
-    fetchScan(params.id)
+    fetchScan(id)
       .then(async (s) => {
         setScan(s);
         setProjectId(s.projectId);
@@ -37,7 +38,7 @@ export default function ScanResults({ params }: { params: { id: string } }) {
         } catch { /* ignore */ }
       })
       .catch((e) => setErr(e.message));
-  }, [params.id]);
+  }, [id]);
 
   const prepped = useMemo(() => (scan ? sortFindings(scan.findings).map(prep) : []), [scan]);
   const sm = useMemo(() => (scan ? summarize(scan.findings) : null), [scan]);
@@ -90,6 +91,8 @@ export default function ScanResults({ params }: { params: { id: string } }) {
   const tabFindings = prepped.filter((f) => f.kind === tab);
   const filtered = prepped.filter((f) => (filterKind === "all" || f.kind === filterKind) && (filterSev === "all" || f.severity === filterSev));
   const groups = SEV_ORDER.map((k) => ({ sev: k, ...SEV_META[k], count: sm.sev[k], findings: prepped.filter((f) => f.severity === k) })).filter((g) => g.count > 0);
+  // 취약점 카드의 심각도 분해는 '취약점'만 집계 (전체 심각도 sm.sev 와 구분)
+  const vulnSev = summarize(scan.findings.filter((f) => f.kind === "vuln")).sev;
 
   return (
     <div style={{ height: "100vh", display: "flex", overflow: "hidden", fontFamily: "var(--md-sys-typescale-plain-font)", background: "var(--md-sys-color-surface)", color: "var(--md-sys-color-on-surface)" }}>
@@ -116,10 +119,10 @@ export default function ScanResults({ params }: { params: { id: string } }) {
                   <span style={bigNum}>{sm.kind.vuln}</span>
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-                  <SumPill label={`심각 ${sm.sev.critical}`} bg="var(--md-sys-color-error)" fg="var(--md-sys-color-on-error)" />
-                  <SumPill label={`높음 ${sm.sev.high}`} bg="var(--md-sys-color-error-container)" fg="var(--md-sys-color-on-error-container)" />
-                  <SumPill label={`보통 ${sm.sev.medium}`} bg="var(--md-sys-color-tertiary-container)" fg="var(--md-sys-color-on-tertiary-container)" />
-                  <SumPill label={`낮음 ${sm.sev.low}`} bg="var(--md-sys-color-secondary-container)" fg="var(--md-sys-color-on-secondary-container)" />
+                  <SumPill label={`심각 ${vulnSev.critical}`} bg="var(--md-sys-color-error)" fg="var(--md-sys-color-on-error)" />
+                  <SumPill label={`높음 ${vulnSev.high}`} bg="var(--md-sys-color-error-container)" fg="var(--md-sys-color-on-error-container)" />
+                  <SumPill label={`보통 ${vulnSev.medium}`} bg="var(--md-sys-color-tertiary-container)" fg="var(--md-sys-color-on-tertiary-container)" />
+                  <SumPill label={`낮음 ${vulnSev.low}`} bg="var(--md-sys-color-secondary-container)" fg="var(--md-sys-color-on-secondary-container)" />
                 </div>
               </div>
               <div style={{ flex: 1, ...card }}>

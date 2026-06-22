@@ -16,11 +16,13 @@ function nowLabel(): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
-export default function Report({ params, searchParams }: { params: { id: string }; searchParams: { print?: string } }) {
+export default async function Report({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ print?: string }> }) {
+  const { id } = await params;
+  const { print } = await searchParams;
   const db = getDb();
-  const scan = getScan(db, params.id);
+  const scan = getScan(db, id);
   const project = scan ? getProject(db, scan.projectId) : undefined;
-  const printMode = searchParams.print === "1";
+  const printMode = print === "1";
 
   if (!scan || scan.status !== "done" || !project) {
     return <div style={{ padding: 48, fontFamily: "var(--md-sys-typescale-plain-font)", color: "var(--md-sys-color-on-surface-variant)" }}>완료된 스캔 보고서를 찾을 수 없습니다.</div>;

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { NavRail } from "@/components/NavRail";
 import { Icon } from "@/components/Icon";
 import { fetchProject, triggerScan, type ProjectWithScans } from "@/lib/api/client";
@@ -16,19 +16,20 @@ const STATUS_META: Record<string, { kr: string; bg: string; fg: string }> = {
   queued: { kr: "대기", bg: "var(--md-sys-color-surface-container-high)", fg: "var(--md-sys-color-on-surface-variant)" },
 };
 
-export default function ProjectDetail({ params }: { params: { id: string } }) {
+export default function ProjectDetail() {
   const router = useRouter();
+  const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<ProjectWithScans | null>(null);
   const [snack, setSnack] = useState<string | null>(null);
   const snackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wasRunning = useRef(false);
 
-  const load = () => fetchProject(params.id).then(setProject).catch((e) => showSnack(e.message));
+  const load = () => fetchProject(id).then(setProject).catch((e) => showSnack(e.message));
 
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [id]);
 
   // running 스캔 폴링
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
 
   async function runScan() {
     try {
-      await triggerScan(params.id);
+      await triggerScan(id);
       await load();
     } catch (e) {
       showSnack((e as Error).message);
