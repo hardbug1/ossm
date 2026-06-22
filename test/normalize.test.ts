@@ -13,6 +13,8 @@ describe("normalizeTrivy", () => {
     expect(lodash.pkg).toBe("lodash");
     expect(lodash.installed).toBe("4.17.19");
     expect(lodash.fixed).toBe("4.17.21");
+    expect(lodash.url).toBe("https://avd.aquasec.com/nvd/cve-2021-23337");
+    expect(lodash.description).toContain("command injection");
   });
 
   it("알 수 없는 severity와 누락 필드를 방어적으로 처리한다", () => {

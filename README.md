@@ -20,19 +20,41 @@
 | Node.js 20+ | 필수 | 앱 실행 |
 | [Trivy CLI](https://aquasecurity.github.io/trivy/) | 실제 스캔에 필수 | 미설치 시 health 배지 "미설치" + 스캔 실패에 안내 |
 | git | GitHub 연동에 필요 | 로컬 경로 스캔만 쓰면 불필요 |
-| Chromium (Puppeteer) | PDF 내보내기에 필요 | `npx puppeteer browsers install chrome` |
+| Chromium | PDF 내보내기에 필요 | 아래 "PDF 설정" 참고 (puppeteer 번들/playwright/시스템 Chromium 자동 탐색) |
+| 한글 글꼴 | PDF 한글 렌더에 필요 | 없으면 PDF에서 한글이 □로 깨짐 (아래 참고) |
 
 ## 설치 & 실행
 
 ```bash
 npm install
-# (선택) PDF 내보내기를 쓰려면 Chromium 설치
-npx puppeteer browsers install chrome
 
 npm run dev        # 개발 서버 → http://localhost:3000
 # 또는
 npm run build && npm start   # 프로덕션 (PDF는 프로덕션에서 더 안정적)
 ```
+
+### PDF 설정 (Chromium + 한글 글꼴)
+
+`lib/report/pdf.ts`는 `PUPPETEER_EXECUTABLE_PATH` → Playwright 캐시 → 시스템 경로 순으로 Chromium을 자동 탐색한다. 환경에 맞게 하나만 준비하면 된다.
+
+```bash
+# 1) Chromium — 아래 중 하나
+npx puppeteer browsers install chrome      # 기본
+npx playwright install chromium            # storage.googleapis.com 차단 환경 대안
+
+# 2) Chromium 실행용 시스템 라이브러리 (Debian/Ubuntu)
+sudo apt-get install -y libnss3 libnspr4 libasound2t64   # 구버전은 libasound2
+#   또는: sudo npx playwright install-deps chromium
+
+# 3) 한글 글꼴 (없으면 PDF 한글이 깨짐) — 아래 중 하나
+sudo apt-get install -y fonts-nanum        # 또는 fonts-noto-cjk
+#   sudo 불가 시: Pretendard를 사용자 폰트 디렉토리에 설치
+mkdir -p ~/.local/share/fonts/pretendard && cd $_
+for w in Regular Medium SemiBold Bold; do curl -sfLO "https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/public/static/Pretendard-$w.otf"; done
+fc-cache -f
+```
+
+미설치 시 PDF 요청은 크래시 대신 설치 안내 메시지를 반환한다.
 
 ## 환경변수
 

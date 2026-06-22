@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { NavRail } from "@/components/NavRail";
 import { Icon } from "@/components/Icon";
 import { FindingRow } from "@/components/FindingRow";
+import { FindingDetail } from "@/components/FindingDetail";
 import { fetchScan, fetchProject } from "@/lib/api/client";
-import { prep, sortFindings, summarize, SEV_META } from "@/lib/meta";
+import { prep, sortFindings, summarize, SEV_META, type PreppedFinding } from "@/lib/meta";
 import type { Kind, Scan, Severity } from "@/lib/types";
 
 type Variant = "tabs" | "table" | "severity";
@@ -23,6 +24,7 @@ export default function ScanResults({ params }: { params: { id: string } }) {
   const [filterKind, setFilterKind] = useState<Kind | "all">("all");
   const [filterSev, setFilterSev] = useState<Severity | "all">("all");
   const [open, setOpen] = useState<Record<Severity, boolean>>({ critical: true, high: true, medium: true, low: true, unknown: true });
+  const [selected, setSelected] = useState<PreppedFinding | null>(null);
 
   useEffect(() => {
     fetchScan(params.id)
@@ -161,7 +163,7 @@ export default function ScanResults({ params }: { params: { id: string } }) {
                   })}
                 </div>
                 {tabFindings.length === 0 && <Empty />}
-                {tabFindings.map((f, i) => <FindingRow key={i} f={f} showSeverity />)}
+                {tabFindings.map((f, i) => <FindingRow key={i} f={f} showSeverity onClick={() => setSelected(f)} />)}
               </div>
             )}
 
@@ -182,7 +184,7 @@ export default function ScanResults({ params }: { params: { id: string } }) {
                     <span style={{ ...hdr(150), textAlign: "right" }}>조치</span>
                   </div>
                   {filtered.length === 0 && <Empty />}
-                  {filtered.map((f, i) => <FindingRow key={i} f={f} showSeverity />)}
+                  {filtered.map((f, i) => <FindingRow key={i} f={f} showSeverity onClick={() => setSelected(f)} />)}
                 </div>
               </div>
             )}
@@ -200,7 +202,7 @@ export default function ScanResults({ params }: { params: { id: string } }) {
                     </div>
                     {open[g.sev] && (
                       <div style={{ borderTop: "1px solid var(--md-sys-color-outline-variant)" }}>
-                        {g.findings.map((f, i) => <FindingRow key={i} f={f} />)}
+                        {g.findings.map((f, i) => <FindingRow key={i} f={f} onClick={() => setSelected(f)} />)}
                       </div>
                     )}
                   </div>
@@ -210,6 +212,8 @@ export default function ScanResults({ params }: { params: { id: string } }) {
           </div>
         </div>
       </div>
+
+      <FindingDetail f={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }

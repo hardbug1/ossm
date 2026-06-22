@@ -25,6 +25,8 @@ export function normalizeTrivy(raw: TrivyOutput): Finding[] {
         title: v.Title ?? v.VulnerabilityID ?? "취약점",
         installed: v.InstalledVersion,
         fixed: v.FixedVersion || undefined,
+        description: v.Description || undefined,
+        url: v.PrimaryURL || undefined,
       });
     }
     for (const l of r.Licenses ?? []) {
@@ -47,6 +49,7 @@ export function normalizeTrivy(raw: TrivyOutput): Finding[] {
         identifier: m.ID ?? "unknown",
         title: m.Title ?? m.ID ?? "구성 이슈",
         note: m.Resolution,
+        description: m.Description || undefined,
       });
     }
   }

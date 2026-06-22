@@ -1,9 +1,9 @@
 import { Icon } from "@/components/Icon";
 import type { PreppedFinding } from "@/lib/meta";
 
-export function FindingRow({ f, showSeverity }: { f: PreppedFinding; showSeverity?: boolean }) {
+export function FindingRow({ f, showSeverity, onClick }: { f: PreppedFinding; showSeverity?: boolean; onClick?: () => void }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 20px", borderBottom: "1px solid var(--md-sys-color-outline-variant)" }}>
+    <div onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 20px", borderBottom: "1px solid var(--md-sys-color-outline-variant)", cursor: onClick ? "pointer" : "default" }}>
       {showSeverity && (
         <span
           style={{
@@ -36,6 +36,7 @@ export function FindingRow({ f, showSeverity }: { f: PreppedFinding; showSeverit
       <div style={{ flexShrink: 0, width: 150, textAlign: "right", fontSize: 12, color: "var(--md-sys-color-on-surface-variant)", fontFamily: "var(--md-sys-typescale-mono-font)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
         {f.right}
       </div>
+      {onClick && <Icon name="chevron_right" size={20} color="var(--md-sys-color-on-surface-variant)" style={{ flexShrink: 0, marginLeft: -6 }} />}
     </div>
   );
 }

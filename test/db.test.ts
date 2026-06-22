@@ -3,7 +3,7 @@ import Database from "better-sqlite3";
 import { migrate } from "@/lib/db";
 import {
   insertProject, listProjects, getProject,
-  insertScan, updateScan, replaceFindings, getScan, listScans,
+  insertScan, updateScan, replaceFindings, getScan, listScans, hasActiveScan, failStaleScans,
 } from "@/lib/db/queries";
 import type { Finding } from "@/lib/types";
 
@@ -37,6 +37,31 @@ it("스캔 생성·갱신·findings 저장·조회 왕복", () => {
   expect(scan.findings.find((f) => f.kind === "vuln")?.fixed).toBe("4.17.21");
 
   expect(listScans(db, "p1")).toHaveLength(1);
+});
+
+it("hasActiveScan: queued/running이 있으면 true, 끝나면 false", () => {
+  insertProject(db, { id: "p1", name: "web", type: "local", value: "/tmp/x", created: "2026-06-19" });
+  expect(hasActiveScan(db, "p1")).toBe(false);
+  insertScan(db, { id: "s1", projectId: "p1", status: "running", started: "2026-06-19 10:00" });
+  expect(hasActiveScan(db, "p1")).toBe(true);
+  updateScan(db, "s1", { status: "done" });
+  expect(hasActiveScan(db, "p1")).toBe(false);
+});
+
+it("failStaleScans: 멈춰있던 스캔을 failed로 정리하고 done은 건드리지 않는다", () => {
+  insertProject(db, { id: "p1", name: "web", type: "local", value: "/tmp/x", created: "2026-06-19" });
+  insertScan(db, { id: "s1", projectId: "p1", status: "running", started: "2026-06-19 10:00" });
+  insertScan(db, { id: "s2", projectId: "p1", status: "queued", started: "2026-06-19 10:01" });
+  insertScan(db, { id: "s3", projectId: "p1", status: "running", started: "2026-06-19 10:02" });
+  updateScan(db, "s3", { status: "done" });
+
+  const changed = failStaleScans(db);
+  expect(changed).toBe(2);
+  expect(getScan(db, "s1")!.status).toBe("failed");
+  expect(getScan(db, "s1")!.error).toContain("중단된 스캔");
+  expect(getScan(db, "s2")!.status).toBe("failed");
+  expect(getScan(db, "s3")!.status).toBe("done");
+  expect(hasActiveScan(db, "p1")).toBe(false);
 });
 
 it("replaceFindings는 기존 findings를 교체한다", () => {

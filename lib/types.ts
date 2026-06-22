@@ -12,6 +12,8 @@ export interface Finding {
   fixed?: string;
   note?: string;
   hygiene?: boolean;
+  description?: string;
+  url?: string;
 }
 
 export interface Project {
@@ -54,6 +56,7 @@ export interface TrivyVuln {
   FixedVersion?: string;
   Severity?: string;
   Title?: string;
+  Description?: string;
   PrimaryURL?: string;
 }
 export interface TrivyLicense {

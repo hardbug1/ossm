@@ -7,3 +7,6 @@ next-env.d.ts
 
 # Claude Code session artifacts
 .claude/
+
+# 생성된 보고서 PDF (런타임 산출물)
+*.pdf

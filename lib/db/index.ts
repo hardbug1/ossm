@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { failStaleScans } from "@/lib/db/queries";
 
 export function migrate(db: InstanceType<typeof Database>): void {
   db.pragma("journal_mode = WAL");
@@ -45,5 +46,7 @@ export function getDb(): InstanceType<typeof Database> {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
   _db = new Database(path);
   migrate(_db);
+  // 서버 시작 시 이전 프로세스에서 중단된(고아) 스캔을 정리
+  failStaleScans(_db);
   return _db;
 }

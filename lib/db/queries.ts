@@ -41,7 +41,7 @@ export function replaceFindings(db: DB, scanId: string, findings: Finding[]): vo
     db.prepare(`DELETE FROM findings WHERE scan_id = ?`).run(scanId);
     const stmt = db.prepare(`INSERT INTO findings (scan_id,kind,severity,pkg,identifier,title,detail_json) VALUES (?,?,?,?,?,?,?)`);
     for (const f of fs) {
-      const detail = JSON.stringify({ installed: f.installed, fixed: f.fixed, note: f.note, hygiene: f.hygiene });
+      const detail = JSON.stringify({ installed: f.installed, fixed: f.fixed, note: f.note, hygiene: f.hygiene, description: f.description, url: f.url });
       stmt.run(scanId, f.kind, f.severity, f.pkg, f.identifier, f.title, detail);
     }
   });
@@ -53,6 +53,7 @@ function rowToFinding(r: any): Finding {
   return {
     kind: r.kind, severity: r.severity, pkg: r.pkg, identifier: r.identifier, title: r.title,
     installed: d.installed ?? undefined, fixed: d.fixed ?? undefined, note: d.note ?? undefined, hygiene: d.hygiene ?? undefined,
+    description: d.description ?? undefined, url: d.url ?? undefined,
   };
 }
 
@@ -75,4 +76,22 @@ export function getScan(db: DB, id: string): Scan | undefined {
 
 export function listScans(db: DB, projectId: string): Scan[] {
   return db.prepare(`SELECT * FROM scans WHERE project_id = ? ORDER BY started_at DESC, rowid DESC`).all(projectId).map((r) => rowToScan(db, r));
+}
+
+export function hasActiveScan(db: DB, projectId: string): boolean {
+  const r = db.prepare(`SELECT COUNT(*) AS c FROM scans WHERE project_id = ? AND status IN ('queued','running')`).get(projectId) as { c: number };
+  return r.c > 0;
+}
+
+// 인프로세스 잡 러너는 재시작 후 복구가 안 되므로, 시작 시 멈춰있는 스캔을 실패로 정리한다.
+export function failStaleScans(db: DB): number {
+  const r = db
+    .prepare(
+      `UPDATE scans SET status='failed',
+         error=COALESCE(error,'서버 재시작으로 중단된 스캔입니다. 다시 스캔하세요.'),
+         finished_at=COALESCE(finished_at, started_at)
+       WHERE status IN ('queued','running')`,
+    )
+    .run();
+  return r.changes;
 }

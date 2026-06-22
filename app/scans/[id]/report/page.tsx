@@ -33,7 +33,9 @@ export default function Report({ params, searchParams }: { params: { id: string 
     return { kr: SEV_META[k].kr, bg: SEV_META[k].bg, fg: SEV_META[k].fg, vuln: inK("vuln"), lic: inK("license"), mis: inK("misconfig"), total: sm.sev[k] };
   });
   const vuln = prepped.filter((f) => f.kind === "vuln");
-  const lic = prepped.filter((f) => f.kind === "license");
+  // "라이선스 위험" 섹션은 실제 위험(허용형=낮음 제외)만 나열한다. 허용형 전체 건수는 요약 표에 있다.
+  const lic = prepped.filter((f) => f.kind === "license" && f.severity !== "low");
+  const licLowCount = prepped.filter((f) => f.kind === "license" && f.severity === "low").length;
   const misc = prepped.filter((f) => f.kind === "misconfig");
   const sourceKr = project.type === "github" ? "GitHub 저장소" : "로컬 경로";
 
@@ -122,24 +124,33 @@ export default function Report({ params, searchParams }: { params: { id: string 
             </>
           )}
 
-          {lic.length > 0 && (
+          {(lic.length > 0 || licLowCount > 0) && (
             <>
               <div style={sectionTitle}>2. 라이선스 위험</div>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-                <thead><tr style={{ borderBottom: "1.5px solid #1b1b1f", color: "#49454f" }}>
-                  <Th>위험도</Th><Th>패키지</Th><Th>라이선스</Th><Th right>분류</Th>
-                </tr></thead>
-                <tbody>
-                  {lic.map((f, i) => (
-                    <tr key={i} style={{ borderBottom: "1px solid #cac4d0" }}>
-                      <td style={{ padding: "7px 8px" }}><Badge bg={f.sevBg} fg={f.sevFg}>{f.sevKr}</Badge></td>
-                      <td style={cell}>{f.pkg}</td>
-                      <td style={cell}>{f.identifier}</td>
-                      <td style={{ padding: "7px 8px", textAlign: "right" }}>{f.right}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {lic.length > 0 ? (
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+                  <thead><tr style={{ borderBottom: "1.5px solid #1b1b1f", color: "#49454f" }}>
+                    <Th>위험도</Th><Th>패키지</Th><Th>라이선스</Th><Th right>분류</Th>
+                  </tr></thead>
+                  <tbody>
+                    {lic.map((f, i) => (
+                      <tr key={i} style={{ borderBottom: "1px solid #cac4d0" }}>
+                        <td style={{ padding: "7px 8px" }}><Badge bg={f.sevBg} fg={f.sevFg}>{f.sevKr}</Badge></td>
+                        <td style={cell}>{f.pkg}</td>
+                        <td style={cell}>{f.identifier}</td>
+                        <td style={{ padding: "7px 8px", textAlign: "right" }}>{f.right}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div style={{ fontSize: 13, color: "#49454f" }}>검토가 필요한 라이선스 위험이 없습니다.</div>
+              )}
+              {licLowCount > 0 && (
+                <div style={{ fontSize: 12, color: "#79747e", marginTop: 8 }}>
+                  허용형(낮음) 라이선스 {licLowCount}건은 위험도가 낮아 표에서 생략했습니다. 전체 집계는 위 요약 표를 참고하세요.
+                </div>
+              )}
             </>
           )}
 
